@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon --exec babel-node src/index.js",
+    "dev": "nodemon --exec babel-node src/index.js",
+    "start": "npm run build && npm run serve",
     "build": "babel src --out-dir dist --copy-files",
     "serve": "node dist/index.js"
   },
