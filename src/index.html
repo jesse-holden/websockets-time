@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      #app {
+        align-items: center;
+        background-color: rgb(75, 75, 77);
+        color: white;
+        display: flex;
+        flex-direction: column;
+        font-size: 2rem;
+        height: 100vh;
+        justify-content: center;
+        width: 100vw;
+      }
+      h6 {
+        font-size: 1rem;
+      }
+      a {
+        color: aquamarine;
+        text-decoration: underline;
+      }
+    </style>
+    <title>Document</title>
+  </head>
+  <body>
+    <main id="app">
+      <article id="root">Fetching Time...</article>
+      <h6>
+        Powered by
+        <a href="http://worldtimeapi.org/" target="_blank"
+          >http://worldtimeapi.org/</a
+        >
+        API
+      </h6>
+    </main>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const root = document.querySelector("#root");
+      const socket = io();
+      let updateTimeInterval = null;
+      let time = new Date();
+
+      function getTimezoneName() {
+        return Intl.DateTimeFormat().resolvedOptions().timeZone;
+      }
+
+      function drawTime(root, time) {
+        root.innerHTML = time.toLocaleTimeString();
+      }
+
+      socket.on("hello", () => {
+        console.info("WebSocket connection established.");
+        socket.emit("set_timezone", getTimezoneName());
+      });
+
+      socket.on("disconnect", reason => {
+        if (reason === "io server disconnect") {
+          clearInterval(updateTimeInterval);
+          updateTimeInterval = null;
+          root.innerHTML = "Lost Connection To Server";
+
+          // the disconnection was initiated by the server, you need to reconnect manually
+          socket.connect();
+        }
+
+        // else the socket will automatically try to reconnect
+        clearInterval(updateTimeInterval);
+        updateTimeInterval = null;
+        root.innerHTML = "Lost Connection To Server";
+      });
+
+      socket.on("update_time", newTime => {
+        if (!updateTimeInterval) {
+          updateTimeInterval = setInterval(() => {
+            time.setSeconds(time.getSeconds() + 1);
+            drawTime(root, time);
+          }, 1000);
+        }
+
+        time = new Date(newTime);
+        console.info("Time Updated.");
+        drawTime(root, time);
+      });
+
+      socket.on("error_message", error => {
+        clearInterval(updateTimeInterval);
+        root.innerHTML = error;
+        socket.disconnect();
+      });
+    </script>
+  </body>
+</html>
