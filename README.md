@@ -2,10 +2,10 @@
 
 An app for displaying time by using an API through websockets
 
-# demo
+## demo
 
 https://websockets-time.herokuapp.com/
 
-# usage
+## usage
 
-npm start
+`npm start`
